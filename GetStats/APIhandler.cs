@@ -55,6 +55,8 @@ namespace GetStats
 
         public static void getTeamGames(int TeamID)
         {
+            Console.WriteLine("\n\t\t\t\t\tMatches");
+            Console.WriteLine("\t\t\t\t\t*******");
             string url = "https://www.heroeslounge.gg/api/v1/teams/" + TeamID.ToString() + "/matches";
             Debug.WriteLine(url);
             var data = HLAPIteamMatches.HLAPIteamMatches.FromJson(getJson(url));
