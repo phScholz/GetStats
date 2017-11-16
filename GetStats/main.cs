@@ -10,9 +10,18 @@ namespace GetStats
         static void Main(string[] args)
         {
             if (args.Length < 4) {
-                Console.WriteLine("Usage: getStats team name\n");
+
+                Console.WriteLine("\nConnecting to Heroes Lounge via API and downloading things!");
+                APIhandler.getTeamData();
+                APIhandler.sortTeamPagesIntoTeams();
+
+                
+
+                Console.WriteLine("\nUsage: getStats team name\n");
                 string input = Console.ReadLine();
                 var inputList = input.Split(null);
+
+                
 
                 if (inputList[1]=="team")
                 {
@@ -40,7 +49,8 @@ namespace GetStats
             {
                 Console.WriteLine("\n");
                 Console.WriteLine(APIhandler.getTeamName(Convert.ToInt32(id)));
-                Console.WriteLine("\nMatches:");
+                Console.WriteLine("\n\t\t\t\t\tMatches");
+                Console.WriteLine("\t\t\t\t\t*******");
                 APIhandler.getTeamGames(Convert.ToInt32(id));
             }
 
@@ -52,18 +62,15 @@ namespace GetStats
         }
 
         static int getSlothID(string sloth)
-        {
-            
+        {            
             return 1;
         }
 
         static List<String> getTeamID(string team)
         {
-            APIhandler.getTeamData();
-            APIhandler.sortTeamPagesIntoTeams();
             var data = APIhandler.getTeamID(team);
             foreach(var i in data){
-                Console.WriteLine(i);
+                Debug.WriteLine(i);
             }
             
             return data;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using Konsole;
 
 namespace GetStats
 {
@@ -20,12 +21,15 @@ namespace GetStats
             
             var data = HLAPIteams.HLAPIteams.FromJson(getJson(url));            
             int last_page = Convert.ToInt32(data.LastPage);
-            for(page=1; page<=last_page;page++)
+            var bar = new ProgressBar(last_page);
+            for (page=1; page<=last_page;page++)
             {
+                bar.Refresh(page, "Downloading TeamData");
                 url = "https://www.heroeslounge.gg/api/v1/teams?page=" + Convert.ToString(page);
                 data = HLAPIteams.HLAPIteams.FromJson(getJson(url));
                 if (data != null) TeamsPages.Add(data);                
-            }            
+            }
+            bar.Refresh(last_page, "Download completed!");
         }
 
         public static void getTeamMatches(int TeamID)
@@ -45,6 +49,7 @@ namespace GetStats
             foreach(var entry in data)
             {
                 Console.WriteLine(entry.Pivot.MatchId + "\t" + getTeamName(TeamID) + "\t" + entry.Pivot.TeamScore.ToString());
+                
             }
         }
 
@@ -52,7 +57,6 @@ namespace GetStats
         {
             string url = "https://www.heroeslounge.gg/api/v1/teams/" + TeamID.ToString() + "/matches";
             Debug.WriteLine(url);
-            Console.WriteLine("MatchID\tRound\tTeam 1\tTeam 2\tWinner");
             var data = HLAPIteamMatches.HLAPIteamMatches.FromJson(getJson(url));
             
             foreach(var entry in data)
@@ -67,18 +71,48 @@ namespace GetStats
                             throw new Exception("Website does not excist: " + url);
                         }
                         var games = HLAPIgames.HLAPIgames.FromJson(getJson(url));
-
+                        int max_games = games.Count;
+                        int i = 0;
                         foreach (var match in games)
                         {
-                            Console.WriteLine(entry.Id.ToString() + "\t" + Convert.ToString(entry.Round) + "\t" + match.TeamOne + "\t" + match.TeamTwo + "\t" + match.Winner);
+                            Console.WriteLine("MatchID\t\tRound\t\tGame\t\tWinner");
+                            Console.WriteLine(entry.Id.ToString() + "\t\t" + Convert.ToString(i) + "\t\t" + Convert.ToString(entry.Round) + "\t\t" +  match.Winner);
+                            printDraft(match.Players);
+                            Console.WriteLine();
                         }
                     }
                     catch(Exception msg)
                     {
-                        Console.WriteLine("Either freewin or not played yet: " + msg);
+                        //Console.WriteLine("Either freewin or not played yet!");
                     }
                 }
             }
+        }
+
+        public static void printDraft(List<HLAPIgames.Player> Players)
+        {
+            List<HLAPIgames.Player> Draft = new List<HLAPIgames.Player>();
+
+            for(int i=1; i<=10; i++)
+            {
+                foreach(var player in Players)
+                {
+                    if (player.DraftPosition == i)
+                    {
+                        Draft.Add(player);
+                    }
+                }
+            }
+            
+            Console.WriteLine("\n\t\t\t\t\tDraft");
+            Console.WriteLine("\t\t\t\t\t*****\n");
+            Console.WriteLine("\t\t\t\t" + Draft.ElementAt(0).Team + "\t" + Draft.ElementAt(1).Team+"\n");
+            Console.WriteLine("\t\t\t\t" + Draft.ElementAt(0).Hero + "(" + Draft.ElementAt(0).DraftPosition.ToString() + ")" + "\t" + Draft.ElementAt(1).Hero + "(" + Draft.ElementAt(1).DraftPosition.ToString() + ")");
+            Console.WriteLine("\t\t\t\t" + Draft.ElementAt(3).Hero + "(" + Draft.ElementAt(3).DraftPosition.ToString() + ")" + "\t" + Draft.ElementAt(2).Hero + "(" + Draft.ElementAt(2).DraftPosition.ToString() + ")");
+            Console.WriteLine("\t\t\t\t" + Draft.ElementAt(4).Hero + "(" + Draft.ElementAt(4).DraftPosition.ToString() + ")" + "\t" + Draft.ElementAt(5).Hero + "(" + Draft.ElementAt(5).DraftPosition.ToString() + ")");
+            Console.WriteLine("\t\t\t\t" + Draft.ElementAt(7).Hero + "(" + Draft.ElementAt(7).DraftPosition.ToString() + ")" + "\t" + Draft.ElementAt(6).Hero + "(" + Draft.ElementAt(6).DraftPosition.ToString() + ")");
+            Console.WriteLine("\t\t\t\t" + Draft.ElementAt(8).Hero + "(" + Draft.ElementAt(8).DraftPosition.ToString() + ")" + "\t" + Draft.ElementAt(9).Hero + "(" + Draft.ElementAt(9).DraftPosition.ToString() + ")");
+            Console.WriteLine();
         }
 
 
@@ -93,7 +127,7 @@ namespace GetStats
                 }
                 catch(Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
+                    Debug.WriteLine(ex.Message);
                 }
 
                 return data;
@@ -102,13 +136,17 @@ namespace GetStats
 
         public static void sortTeamPagesIntoTeams()
         {
+            var bar = new ProgressBar(TeamsPages.Count);
+            int i = 1;
             foreach(var entry in TeamsPages)
             {
+                bar.Refresh(++i, "Sorting Team Data");                              
                 foreach(var team in entry.Teams)
-                {
+                {                    
                     HLTeams.Add(HLAPIteam.Converter.TeamsToTeam(team));
                 }
             }
+            bar.Refresh(TeamsPages.Count, "Sorting completed!");
         }
         
         public static List<string> getTeamID(string team)
@@ -139,6 +177,17 @@ namespace GetStats
         public static void getSlothData()
         {
 
-        }        
+        }
+
+        private static void collectTeamPlayerStats()
+        {
+
+        }
+
+        public static void printTeamPlayerStats(int TeamID)
+        {
+            collectTeamPlayerStats();
+        }
+
     }
 }
